@@ -77,6 +77,52 @@ h1,h2,h3{
 }
 .route-chip:not(:last-child)::after{content:'→';margin-left:10px;color:var(--gold);opacity:.6;}
 
+/* ---------- TOUR GUIDE SLIDE ---------- */
+.guide-slide{
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  position:relative;
+  padding:30px 20px;
+}
+.guide-slide .compass{
+  width:70px;
+  height:70px;
+  top:20px;
+  left:50%;
+  transform:translateX(-50%);
+  opacity:.8;
+}
+.guide-slide .eyebrow{margin-top:35px;}
+.guide-slide h1{
+  font-size:clamp(2.2rem, 4.5vw, 3.8rem);
+  margin-top:8px;
+  margin-bottom:15px;
+}
+.guide-img-container{
+  height: clamp(240px, 42vh, 420px);
+  max-width: 90%;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+  border: 1px solid rgba(216,170,85,0.3);
+  margin-bottom: 20px;
+}
+.guide-img-container img{
+  height: 100%;
+  width: auto;
+  object-fit: contain;
+  display: block;
+}
+.guide-caption{
+  font-family:'Fraunces',serif;
+  font-size: clamp(1.1rem, 2.2vw, 1.6rem);
+  color: var(--gold);
+  max-width: 850px;
+  line-height: 1.4;
+  margin: 0 auto;
+}
+
 /* ---------- CLOSING SLIDE ---------- */
 .closing-slide{align-items:center;justify-content:center;text-align:center;gap:26px;position:relative;}
 .plane-track{width:100%;height:110px;position:relative;overflow:hidden;}
@@ -148,19 +194,19 @@ h1,h2,h3{
   display:flex;
   align-items:center;
   justify-content:center;
-  gap:22px;
-  background: #091A1D; /* Solid dark background to ensure buttons never blend or disappear */
+  gap:14px;
+  background: #091A1D;
   border-top: 1px solid rgba(207,226,221,.2);
-  z-index:9999; /* Higher priority so maps or photos don't render over it */
+  z-index:9999;
 }
 .nav-btn{
-  width:48px;
-  height:48px;
+  width:44px;
+  height:44px;
   border-radius:50%;
   border:2px solid var(--gold);
   background:var(--sea-2);
   color:var(--whitewash);
-  font-size:1.5rem;
+  font-size:1.3rem;
   font-weight:bold;
   cursor:pointer;
   display:flex;
@@ -179,7 +225,7 @@ h1,h2,h3{
   font-weight:600;
   color:var(--whitewash);
   letter-spacing:.08em;
-  min-width:90px;
+  min-width:80px;
   text-align:center;
   font-family:'Inter',sans-serif;
 }
@@ -217,9 +263,11 @@ h1,h2,h3{
 <div id="deck"></div>
 
 <div id="nav">
+  <button class="nav-btn" id="firstBtn" title="First Slide">«</button>
   <button class="nav-btn" id="prevBtn" title="Previous Slide">‹</button>
   <div id="navCounter">1 / 1</div>
   <button class="nav-btn" id="nextBtn" title="Next Slide">›</button>
+  <button class="nav-btn" id="lastBtn" title="Last Slide">»</button>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
@@ -389,7 +437,7 @@ function drawRoute(map, pts, mode){
   return L.polyline(pts, {color:'#D8AA55', weight:3, opacity:.95, lineCap:'round'}).addTo(map);
 }
 
-/* Title slide */
+/* Slide 1: Title slide */
 (function(){
   const s = document.createElement("div");
   s.className = "slide title-slide";
@@ -401,6 +449,24 @@ function drawRoute(map, pts, mode){
     <div class="trip-dates">December 12, 2026 – January 10, 2027</div>
     <div class="route-strip">
       ${legs.map(l=>`<div class="route-chip">${l.city}</div>`).join("")}
+    </div>
+  `;
+  addSlide(s);
+})();
+
+/* Slide 2: Tour Guide slide */
+(function(){
+  const s = document.createElement("div");
+  s.className = "slide guide-slide";
+  s.innerHTML = `
+    <div class="compass">${compassSVG()}</div>
+    <div class="eyebrow">A FAMILY JOURNEY · DEC 2026 – JAN 2027</div>
+    <h1>Italy <span style="color:var(--terracotta);font-style:italic;">&amp;</span> Malta</h1>
+    <div class="guide-img-container">
+      <img src="alex-the-tour-guide.png" alt="Alexander the Tour Guide">
+    </div>
+    <div class="guide-caption">
+      Hello, my name is Alexander, and I am delighted to take you on a preview of your upcoming trip to my beloved homeland... Enjoy the ride!
     </div>
   `;
   addSlide(s);
@@ -655,16 +721,28 @@ function render(){
   const d = slideDefs[current];
   if(d.onShow) requestAnimationFrame(()=>setTimeout(d.onShow,20));
 }
-function go(delta){
-  current = Math.max(0, Math.min(slideDefs.length-1, current+delta));
+
+function goToSlide(index){
+  current = Math.max(0, Math.min(slideDefs.length - 1, index));
   render();
 }
+
+function go(delta){
+  goToSlide(current + delta);
+}
+
+document.getElementById("firstBtn").addEventListener("click", ()=>goToSlide(0));
 document.getElementById("prevBtn").addEventListener("click", ()=>go(-1));
 document.getElementById("nextBtn").addEventListener("click", ()=>go(1));
+document.getElementById("lastBtn").addEventListener("click", ()=>goToSlide(slideDefs.length - 1));
+
 window.addEventListener("keydown", (e)=>{
   if(e.key==="ArrowRight" || e.key===" ") go(1);
   if(e.key==="ArrowLeft") go(-1);
+  if(e.key==="Home") goToSlide(0);
+  if(e.key==="End") goToSlide(slideDefs.length - 1);
 });
+
 render();
 </script>
 </body>
